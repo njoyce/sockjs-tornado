@@ -9,11 +9,12 @@ import logging
 
 from tornado.web import asynchronous
 
-from sockjs.tornado import proto
+from sockjs.tornado.json import json_encode, json_decode
 from sockjs.tornado.transports import pollingbase
 from sockjs.tornado.util import bytes_to_str, unquote_plus
 
 LOG = logging.getLogger("tornado.general")
+
 
 class JSONPTransport(pollingbase.PollingTransportBase):
     name = 'jsonp'
@@ -53,7 +54,7 @@ class JSONPTransport(pollingbase.PollingTransportBase):
 
         try:
             # TODO: Just escape
-            msg = '%s(%s);\r\n' % (self.callback, proto.json_encode(message))
+            msg = '%s(%s);\r\n' % (self.callback, json_encode(message))
 
             self.set_header('Content-Type', 'application/javascript; charset=UTF-8')
             self.set_header('Content-Length', len(msg))
@@ -102,7 +103,7 @@ class JSONPSendHandler(pollingbase.PollingTransportBase):
             return
 
         try:
-            messages = proto.json_decode(data)
+            messages = json_decode(data)
         except:
             # TODO: Proper error handling
             LOG.debug('jsonp_send: Invalid json encoding')

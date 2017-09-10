@@ -9,6 +9,7 @@
 import logging
 
 from sockjs.tornado import sessioncontainer, periodic, proto
+from sockjs.tornado.json import json_encode
 from sockjs.tornado.util import bytes_to_str
 
 LOG = logging.getLogger("tornado.general")
@@ -319,7 +320,7 @@ class Session(BaseSession, sessioncontainer.SessionMixin):
         `stats`
             If set to True, will update statistics after operation completes
         """
-        self.send_jsonified(proto.json_encode(bytes_to_str(msg)), stats)
+        self.send_jsonified(json_encode(bytes_to_str(msg)), stats)
 
     def send_jsonified(self, msg, stats=True):
         """Send JSON-encoded message

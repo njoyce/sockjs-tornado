@@ -8,9 +8,10 @@
 import logging
 import socket
 
-from sockjs.tornado import proto, websocket
+from sockjs.tornado import websocket
 from sockjs.tornado.transports import base
 from sockjs.tornado.util import bytes_to_str
+from sockjs.tornado.json import json_decode
 
 LOG = logging.getLogger("tornado.general")
 
@@ -54,7 +55,7 @@ class WebSocketTransport(websocket.SockJSWebSocketHandler, base.BaseTransportMix
             return
 
         try:
-            msg = proto.json_decode(bytes_to_str(message))
+            msg = json_decode(bytes_to_str(message))
 
             if isinstance(msg, list):
                 self.session.on_messages(msg)

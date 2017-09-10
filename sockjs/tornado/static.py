@@ -14,7 +14,7 @@ import sys
 from tornado.web import asynchronous
 
 from sockjs.tornado.basehandler import BaseHandler, PreflightHandler
-from sockjs.tornado.proto import json_encode
+from sockjs.tornado.json import json_encode
 from sockjs.tornado.util import MAXSIZE, str_to_bytes
 
 IFRAME_TEXT = '''<!DOCTYPE html>

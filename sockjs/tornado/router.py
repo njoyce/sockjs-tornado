@@ -8,7 +8,8 @@
 
 from tornado import ioloop, version_info
 
-from sockjs.tornado import transports, session, sessioncontainer, static, stats, proto
+from sockjs.tornado import transports, session, sessioncontainer, static, stats
+from sockjs.tornado.json import json_encode
 
 
 DEFAULT_SETTINGS = {
@@ -158,10 +159,10 @@ class SockJSRouter(object):
         """
         # TODO: Possible optimization here for settings.get
         s = self._session_kls(self._connection,
-                            self,
-                            session_id,
-                            self.settings.get('disconnect_delay')
-                            )
+            self,
+            session_id,
+            self.settings.get('disconnect_delay')
+        )
 
         if register:
             self._sessions.add(s)
@@ -199,7 +200,7 @@ class SockJSRouter(object):
             if not sess.is_closed:
                 if sess.send_expects_json:
                     if json_msg is None:
-                        json_msg = proto.json_encode(msg)
+                        json_msg = json_encode(msg)
                     sess.send_jsonified(json_msg, False)
                 else:
                     sess.send_message(msg, stats=False)

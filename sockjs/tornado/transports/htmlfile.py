@@ -8,7 +8,7 @@
 
 from tornado.web import asynchronous
 
-from sockjs.tornado import proto
+from sockjs.tornado.json import json_encode
 from sockjs.tornado.transports import streamingbase
 
 # HTMLFILE template
@@ -70,7 +70,7 @@ class HtmlFileTransport(streamingbase.StreamingTransportBase):
             raise Exception('binary not supported for HtmlFileTransport')
 
         # TODO: Just do escaping
-        msg = '<script>\np(%s);\n</script>\r\n' % proto.json_encode(message)
+        msg = '<script>\np(%s);\n</script>\r\n' % json_encode(message)
 
         self.active = False
 
