@@ -8,8 +8,9 @@ class StreamingTransportBase(pollingbase.PollingTransportBase):
         self.amount_limit = self.server.settings['response_limit']
 
         # HTTP 1.0 client might send keep-alive
-        if hasattr(self.request, 'connection') and not self.request.supports_http_1_1():
-            self.request.connection.no_keep_alive = True
+        if hasattr(self.request, 'connection'):
+            if self.request.supports_http_1_1():
+                self.request.connection.no_keep_alive = True
 
     def notify_sent(self, data_len):
         """
@@ -31,15 +32,16 @@ class StreamingTransportBase(pollingbase.PollingTransportBase):
         return False
 
     def send_complete(self):
-        """
-            Verify if connection should be closed based on amount of data that was sent.
+        """Verify if connection should be closed based on amount of data that
+        was sent.
         """
         self.active = True
 
         if self.should_finish():
             self._detach()
 
-            # Avoid race condition when waiting for write callback and session getting closed in between
+            # Avoid race condition when waiting for write callback and session
+            # getting closed in between
             if not self._finished:
                 self.safe_finish()
         else:

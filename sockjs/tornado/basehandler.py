@@ -16,6 +16,7 @@ CACHE_TIME = 31536000
 
 LOG = logging.getLogger("tornado.general")
 
+
 class BaseHandler(RequestHandler):
     """Base request handler with set of helpers."""
     def initialize(self, server):
@@ -61,11 +62,15 @@ class BaseHandler(RequestHandler):
 
     def disable_cache(self):
         """Disable client-side cache for the current request"""
-        self.set_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+        self.set_header(
+            'Cache-Control',
+            'no-store, no-cache, must-revalidate, max-age=0'
+        )
 
     def handle_session_cookie(self):
         """Handle JSESSIONID cookie logic"""
-        # If JSESSIONID support is disabled in the settings, ignore cookie logic
+        # If JSESSIONID support is disabled in the settings, ignore cookie
+        # logic
         if not self.server.settings['jsessionid']:
             return
 

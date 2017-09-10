@@ -56,7 +56,10 @@ class JSONPTransport(pollingbase.PollingTransportBase):
             # TODO: Just escape
             msg = '%s(%s);\r\n' % (self.callback, json_encode(message))
 
-            self.set_header('Content-Type', 'application/javascript; charset=UTF-8')
+            self.set_header(
+                'Content-Type',
+                'application/javascript; charset=UTF-8'
+            )
             self.set_header('Content-Length', len(msg))
 
             # TODO: Fix me
@@ -65,8 +68,8 @@ class JSONPTransport(pollingbase.PollingTransportBase):
             self.write(msg)
             self.flush(callback=self.send_complete)
         except IOError:
-            # If connection dropped, make sure we close offending session instead
-            # of propagating error all way up.
+            # If connection dropped, make sure we close offending session
+            # instead of propagating error all way up.
             self.session.delayed_close()
 
 

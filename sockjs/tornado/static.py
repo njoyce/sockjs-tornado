@@ -9,7 +9,6 @@
 import time
 import hashlib
 import random
-import sys
 
 from tornado.web import asynchronous
 
@@ -86,7 +85,10 @@ class ChunkingTestHandler(PreflightHandler):
     @asynchronous
     def post(self):
         self.preflight()
-        self.set_header('Content-Type', 'application/javascript; charset=UTF-8')
+        self.set_header(
+            'Content-Type',
+            'application/javascript; charset=UTF-8'
+        )
 
         # Send one 'h' immediately
         self.write('h\n')
@@ -104,8 +106,10 @@ class ChunkingTestHandler(PreflightHandler):
 
                 self.step += 1
                 if self.step < len(self.steps):
-                    self.io_loop.add_timeout(time.time() + self.steps[self.step],
-                                             run_step)
+                    self.io_loop.add_timeout(
+                        time.time() + self.steps[self.step],
+                        run_step
+                    )
                 else:
                     self.finish()
             except IOError:

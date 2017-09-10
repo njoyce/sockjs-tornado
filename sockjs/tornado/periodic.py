@@ -12,6 +12,7 @@ import logging
 
 LOG = logging.getLogger("tornado.general")
 
+
 class Callback(object):
     """Custom implementation of the Tornado.Callback with support
     of callback timeout delays.

@@ -15,6 +15,7 @@ from sockjs.tornado.util import bytes_to_str
 
 LOG = logging.getLogger("tornado.general")
 
+
 class XhrPollingTransport(pollingbase.PollingTransportBase):
     """xhr-polling transport implementation"""
     name = 'xhr'
@@ -46,13 +47,16 @@ class XhrPollingTransport(pollingbase.PollingTransportBase):
         self.active = False
 
         try:
-            self.set_header('Content-Type', 'application/javascript; charset=UTF-8')
+            self.set_header(
+                'Content-Type',
+                'application/javascript; charset=UTF-8'
+            )
             self.set_header('Content-Length', len(message) + 1)
             self.write(message + '\n')
             self.flush(callback=self.send_complete)
         except IOError:
-            # If connection dropped, make sure we close offending session instead
-            # of propagating error all way up.
+            # If connection dropped, make sure we close offending session
+            # instead of propagating error all way up.
             self.session.delayed_close()
 
 

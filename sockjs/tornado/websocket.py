@@ -1,16 +1,17 @@
 import tornado
-from tornado import escape, gen, websocket
+from tornado import websocket
 
 try:
-    from urllib.parse import urlparse # py3
+    from urllib.parse import urlparse  # py3
 except ImportError:
-    from urlparse import urlparse # py2
+    from urlparse import urlparse  # py2
 
 
 class SockJSWebSocketHandler(websocket.WebSocketHandler):
     if tornado.version_info[0] == 4 and tornado.version_info[1] > 1:
         def get_compression_options(self):
-            # let tornado use compression when Sec-WebSocket-Extensions:permessage-deflate is provided
+            # let tornado use compression when
+            # Sec-WebSocket-Extensions:permessage-deflate is provided
             return {}
 
     SUPPORTED_METHODS = ('GET',)

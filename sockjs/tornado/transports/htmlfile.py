@@ -80,7 +80,7 @@ class HtmlFileTransport(streamingbase.StreamingTransportBase):
             self.write(msg)
             self.flush(callback=self.send_complete)
         except IOError:
-            # If connection dropped, make sure we close offending session instead
-            # of propagating error all way up.
+            # If connection dropped, make sure we close offending session
+            # instead of propagating error all way up.
             self.session.delayed_close()
             self._detach()

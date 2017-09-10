@@ -10,7 +10,8 @@ from sockjs.tornado import basehandler
 from sockjs.tornado.transports import base
 
 
-class PollingTransportBase(basehandler.PreflightHandler, base.BaseTransportMixin):
+class PollingTransportBase(basehandler.PreflightHandler,
+                           base.BaseTransportMixin):
     """Polling transport handler base class"""
     def initialize(self, server):
         super(PollingTransportBase, self).initialize(server)
@@ -67,6 +68,7 @@ class PollingTransportBase(basehandler.PreflightHandler, base.BaseTransportMixin
     def send_complete(self):
         self._detach()
 
-        # Avoid race condition when waiting for write callback and session getting closed in between
+        # Avoid race condition when waiting for write callback and session
+        # getting closed in between
         if not self._finished:
             self.safe_finish()

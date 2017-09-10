@@ -91,7 +91,8 @@ class BaseSession(object):
     def set_handler(self, handler):
         """Set transport handler
         ``handler``
-            Handler, should derive from the `sockjs.tornado.transports.base.BaseTransportMixin`.
+            Handler, should derive from the
+            `sockjs.tornado.transports.base.BaseTransportMixin`.
         """
         if self.handler is not None:
             raise Exception('Attempted to overwrite BaseSession handler')
@@ -106,7 +107,8 @@ class BaseSession(object):
         return True
 
     def verify_state(self):
-        """Verify if session was not yet opened. If it is, open it and call connections `on_open`"""
+        """Verify if session was not yet opened. If it is, open it and call
+        connections `on_open`"""
         if self.state == CONNECTING:
             self.state = OPEN
 
@@ -184,8 +186,8 @@ class BaseSession(object):
         raise NotImplemented()
 
     def send_jsonified(self, msg, stats=True):
-        """Send or queue outgoing message which was json-encoded before. Used by the `broadcast`
-        method.
+        """Send or queue outgoing message which was json-encoded before. Used
+        by the `broadcast` method.
 
         `msg`
             JSON-encoded message to send
@@ -195,8 +197,9 @@ class BaseSession(object):
         raise NotImplemented()
 
     def broadcast(self, clients, msg):
-        """Optimized `broadcast` implementation. Depending on type of the session, will json-encode
-        message once and will call either `send_message` or `send_jsonifed`.
+        """Optimized `broadcast` implementation. Depending on type of the
+        session, will json-encode message once and will call either
+        `send_message` or `send_jsonifed`.
 
         `clients`
             Clients iterable
@@ -231,7 +234,9 @@ class Session(BaseSession, sessioncontainer.SessionMixin):
 
         # Heartbeat related stuff
         self._heartbeat_timer = None
-        self._heartbeat_interval = self.server.settings['heartbeat_delay'] * 1000
+        self._heartbeat_interval = (
+            self.server.settings['heartbeat_delay'] * 1000
+        )
 
         self._immediate_flush = self.server.settings['immediate_flush']
         self._pending_flush = False
@@ -246,7 +251,8 @@ class Session(BaseSession, sessioncontainer.SessionMixin):
             If session item explicitly deleted, forced will be set to True. If
             item expired, will be set to False.
         """
-        # Do not remove connection if it was not forced and there's running connection
+        # Do not remove connection if it was not forced and there's running
+        # connection
         if not forced and self.handler is not None and not self.is_closed:
             self.promote()
         else:
@@ -263,22 +269,29 @@ class Session(BaseSession, sessioncontainer.SessionMixin):
         """
         # Check if session already has associated handler
         if self.handler is not None:
-            handler.send_pack(proto.disconnect(2010, "Another connection still open"))
+            handler.send_pack(
+                proto.disconnect(2010, "Another connection still open")
+            )
             return False
 
         if self._verify_ip and self.conn_info is not None:
             # If IP address doesn't match - refuse connection
             if handler.request.remote_ip != self.conn_info.ip:
-                LOG.error('Attempted to attach to session %s (%s) from different IP (%s)' % (
-                              self.session_id,
-                              self.conn_info.ip,
-                              handler.request.remote_ip
-                              ))
+                LOG.error(
+                    'Attempted to attach to session %s (%s) from different '
+                    'IP (%s)',
+                    self.session_id,
+                    self.conn_info.ip,
+                    handler.request.remote_ip
+                )
 
-                handler.send_pack(proto.disconnect(2010, "Attempted to connect to session from different IP"))
+                handler.send_pack(proto.disconnect(
+                    2010,
+                    "Attempted to connect to session from different IP"
+                ))
                 return False
 
-        if (self.state == CLOSING or self.state == CLOSED) and not self.send_queue:
+        if self.state in [CLOSING, CLOSED] and not self.send_queue:
             handler.send_pack(proto.disconnect(*self.get_close_reason()))
             return False
 
@@ -293,7 +306,8 @@ class Session(BaseSession, sessioncontainer.SessionMixin):
         return True
 
     def verify_state(self):
-        """Verify if session was not yet opened. If it is, open it and call connections `on_open`"""
+        """Verify if session was not yet opened. If it is, open it and call
+        connections `on_open`"""
         # If we're in CONNECTING state - send 'o' message to the client
         if self.state == CONNECTING:
             self.handler.send_pack(proto.CONNECT)
@@ -358,7 +372,10 @@ class Session(BaseSession, sessioncontainer.SessionMixin):
         """Flush message queue if there's an active connection running"""
         self._pending_flush = False
 
-        if self.handler is None or not self.handler.active or not self.send_queue:
+        if self.handler is None:
+            return
+
+        if not self.handler.active or not self.send_queue:
             return
 
         self.handler.send_pack('a[%s]' % self.send_queue)

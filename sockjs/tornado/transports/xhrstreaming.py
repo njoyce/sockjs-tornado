@@ -20,7 +20,10 @@ class XhrStreamingTransport(streamingbase.StreamingTransportBase):
         self.preflight()
         self.handle_session_cookie()
         self.disable_cache()
-        self.set_header('Content-Type', 'application/javascript; charset=UTF-8')
+        self.set_header(
+            'Content-Type',
+            'application/javascript; charset=UTF-8'
+        )
 
         # Send prelude and flush any pending messages
         self.write('h' * 2048 + '\n')
@@ -45,7 +48,7 @@ class XhrStreamingTransport(streamingbase.StreamingTransportBase):
             self.write(message + '\n')
             self.flush(callback=self.send_complete)
         except IOError:
-            # If connection dropped, make sure we close offending session instead
-            # of propagating error all way up.
+            # If connection dropped, make sure we close offending session
+            # instead of propagating error all way up.
             self.session.delayed_close()
             self._detach()

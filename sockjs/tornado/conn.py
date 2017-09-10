@@ -26,13 +26,16 @@ class SockJSConnection(object):
         You can also throw Tornado HTTPError to close connection.
 
         `request`
-            ``ConnectionInfo`` object which contains caller IP address, query string
-            parameters and cookies associated with this request (if any).
+            ``ConnectionInfo`` object which contains caller IP address, query
+            string parameters and cookies associated with this request (if
+            any).
         """
         pass
 
     def on_message(self, message):
-        """Default on_message handler. Must be overridden in your application"""
+        """
+        Default on_message handler. Must be overridden in your application
+        """
         raise NotImplementedError()
 
     def on_close(self):
@@ -51,8 +54,8 @@ class SockJSConnection(object):
     def broadcast(self, clients, message):
         """Broadcast message to the one or more clients.
         Use this method if you want to send same message to lots of clients, as
-        it contains several optimizations and will work fast than just having loop
-        in your code.
+        it contains several optimizations and will work fast than just having
+        loop in your code.
 
         `clients`
             Clients iterable

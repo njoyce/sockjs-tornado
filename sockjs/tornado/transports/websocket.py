@@ -6,7 +6,6 @@
     Websocket transport implementation
 """
 import logging
-import socket
 
 from sockjs.tornado import websocket
 from sockjs.tornado.transports import base
@@ -15,7 +14,9 @@ from sockjs.tornado.json import json_decode
 
 LOG = logging.getLogger("tornado.general")
 
-class WebSocketTransport(websocket.SockJSWebSocketHandler, base.BaseTransportMixin):
+
+class WebSocketTransport(websocket.SockJSWebSocketHandler,
+                         base.BaseTransportMixin):
     """Websocket transport"""
     name = 'websocket'
 
@@ -65,7 +66,7 @@ class WebSocketTransport(websocket.SockJSWebSocketHandler, base.BaseTransportMix
             LOG.exception('WebSocket')
 
             # Close session on exception
-            #self.session.close()
+            # self.session.close()
 
             # Close running connection
             self.abort_connection()

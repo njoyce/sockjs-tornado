@@ -58,8 +58,8 @@ class SessionMixin(object):
 
     def __lt__(self, other):
         return self.expiry_date < other.expiry_date
-    
-    __cmp__ =  __lt__
+
+    __cmp__ = __lt__
 
     def __repr__(self):
         return '%f %s %d' % (getattr(self, 'expiry_date', -1),
@@ -118,7 +118,8 @@ class SessionContainer(object):
         """Expire any old entries
 
         `current_time`
-            Optional time to be used to clean up queue (can be used in unit tests)
+            Optional time to be used to clean up queue (can be used in unit
+            tests)
         """
         if not self._queue:
             return

@@ -99,7 +99,9 @@ class SockJSRouter(object):
         if user_settings:
             self.settings.update(user_settings)
 
-        self.websockets_enabled = 'websocket' not in self.settings['disabled_transports']
+        self.websockets_enabled = (
+            'websocket' not in self.settings['disabled_transports']
+        )
         self.cookie_needed = self.settings['jsessionid']
 
         # Sessions
@@ -119,8 +121,10 @@ class SockJSRouter(object):
         base = prefix + r'/[^/.]+/(?P<session_id>[^/.]+)'
 
         # Generate global handler URLs
-        self._transport_urls = [('%s/%s$' % (base, p[0]), p[1], dict(server=self))
-                                for p in GLOBAL_HANDLERS]
+        self._transport_urls = [
+            ('%s/%s$' % (base, p[0]), p[1], dict(server=self))
+            for p in GLOBAL_HANDLERS
+        ]
 
         for k, v in TRANSPORTS.items():
             if k in self.settings['disabled_transports']:
@@ -134,8 +138,10 @@ class SockJSRouter(object):
                 )
 
         # Generate static URLs
-        self._transport_urls.extend([('%s%s' % (prefix, k), v, dict(server=self))
-                                     for k, v in STATIC_HANDLERS.items()])
+        self._transport_urls.extend([
+            ('%s%s' % (prefix, k), v, dict(server=self))
+            for k, v in STATIC_HANDLERS.items()
+        ])
 
     @property
     def urls(self):
@@ -158,7 +164,8 @@ class SockJSRouter(object):
             need it.
         """
         # TODO: Possible optimization here for settings.get
-        s = self._session_kls(self._connection,
+        s = self._session_kls(
+            self._connection,
             self,
             session_id,
             self.settings.get('disconnect_delay')
@@ -183,8 +190,9 @@ class SockJSRouter(object):
 
     # Broadcast helper
     def broadcast(self, clients, msg):
-        """Optimized `broadcast` implementation. Depending on type of the session, will json-encode
-        message once and will call either `send_message` or `send_jsonifed`.
+        """Optimized `broadcast` implementation. Depending on type of the
+        session, will json-encode message once and will call either
+        `send_message` or `send_jsonifed`.
 
         `clients`
             Clients iterable

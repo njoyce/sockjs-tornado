@@ -13,9 +13,11 @@ from sockjs.tornado.transports import base
 
 LOG = logging.getLogger("tornado.general")
 
+
 class RawSession(session.BaseSession):
     """Raw session without any sockjs protocol encoding/decoding. Simply
-    works as a proxy between `SockJSConnection` class and `RawWebSocketTransport`."""
+    works as a proxy between `SockJSConnection` class and
+    `RawWebSocketTransport`."""
     def send_message(self, msg, stats=True, binary=False):
         self.handler.send_pack(msg, binary)
 
@@ -23,7 +25,8 @@ class RawSession(session.BaseSession):
         self.conn.on_message(msg)
 
 
-class RawWebSocketTransport(websocket.SockJSWebSocketHandler, base.BaseTransportMixin):
+class RawWebSocketTransport(websocket.SockJSWebSocketHandler,
+                            base.BaseTransportMixin):
     """Raw Websocket transport"""
     name = 'rawwebsocket'
 
@@ -38,10 +41,17 @@ class RawWebSocketTransport(websocket.SockJSWebSocketHandler, base.BaseTransport
 
         # Disable nagle if needed
         if self.server.settings['disable_nagle']:
-            self.stream.socket.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)
+            self.stream.socket.setsockopt(
+                socket.SOL_TCP,
+                socket.TCP_NODELAY,
+                1
+            )
 
         # Create and attach to session
-        self.session = RawSession(self.server.get_connection_class(), self.server)
+        self.session = RawSession(
+            self.server.get_connection_class(),
+            self.server
+        )
         self.session.set_handler(self)
         self.session.verify_state()
 
