@@ -10,13 +10,13 @@ import logging
 from tornado.web import asynchronous
 
 from sockjs.tornado.json import json_encode, json_decode
-from sockjs.tornado.transports import pollingbase
+from sockjs.tornado.transports import pollingbase, base
 from sockjs.tornado.util import bytes_to_str, unquote_plus
 
 LOG = logging.getLogger("tornado.general")
 
 
-class JSONPTransport(pollingbase.PollingTransportBase):
+class JSONPTransport(pollingbase.PollingTransportBase, base.JSONCallbackMixin):
     name = 'jsonp'
 
     @asynchronous
@@ -24,14 +24,7 @@ class JSONPTransport(pollingbase.PollingTransportBase):
         # Start response
         self.handle_session_cookie()
         self.disable_cache()
-
-        # Grab callback parameter
-        self.callback = self.get_argument('c', None)
-        if not self.callback:
-            self.write('"callback" parameter required')
-            self.set_status(500)
-            self.finish()
-            return
+        self.verify_callback()
 
         # Get or create session without starting heartbeat
         if not self._attach_session(session_id, False):
@@ -54,7 +47,10 @@ class JSONPTransport(pollingbase.PollingTransportBase):
 
         try:
             # TODO: Just escape
-            msg = '%s(%s);\r\n' % (self.callback, json_encode(message))
+            msg = '/**/%s(%s);\r\n' % (
+                self.json_callback,
+                json_encode(message)
+            )
 
             self.set_header(
                 'Content-Type',

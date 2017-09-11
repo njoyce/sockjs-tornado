@@ -64,7 +64,7 @@ class BaseHandler(RequestHandler):
         """Disable client-side cache for the current request"""
         self.set_header(
             'Cache-Control',
-            'no-store, no-cache, must-revalidate, max-age=0'
+            'no-store, no-cache, no-transform, must-revalidate, max-age=0'
         )
 
     def handle_session_cookie(self):

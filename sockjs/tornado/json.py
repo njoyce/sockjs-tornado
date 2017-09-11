@@ -4,6 +4,8 @@ looking for the fastest library implementation first and then falling back
 to stdlib if necessary.
 """
 
+from __future__ import absolute_import
+
 from tornado.log import gen_log as LOG
 
 try:

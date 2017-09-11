@@ -9,8 +9,8 @@ import logging
 
 from tornado.web import asynchronous
 
-from sockjs.tornado import proto
 from sockjs.tornado.transports import pollingbase
+from sockjs.tornado.json import json_decode
 from sockjs.tornado.util import bytes_to_str
 
 LOG = logging.getLogger("tornado.general")
@@ -79,11 +79,12 @@ class XhrSendHandler(pollingbase.PollingTransportBase):
             return
 
         try:
-            messages = proto.json_decode(bytes_to_str(data))
+            messages = json_decode(bytes_to_str(data))
         except:
-            # TODO: Proper error handling
+            LOG.error('Failed to decode %r', data)
             self.write("Broken JSON encoding.")
             self.set_status(500)
+
             return
 
         try:

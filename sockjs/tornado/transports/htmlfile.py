@@ -9,7 +9,7 @@
 from tornado.web import asynchronous
 
 from sockjs.tornado.json import json_encode
-from sockjs.tornado.transports import streamingbase
+from sockjs.tornado.transports import streamingbase, base
 
 # HTMLFILE template
 HTMLFILE_HEAD = r'''
@@ -30,7 +30,8 @@ HTMLFILE_HEAD += ' ' * (1024 - len(HTMLFILE_HEAD) + 14)
 HTMLFILE_HEAD += '\r\n\r\n'
 
 
-class HtmlFileTransport(streamingbase.StreamingTransportBase):
+class HtmlFileTransport(streamingbase.StreamingTransportBase,
+                        base.JSONCallbackMixin):
     name = 'htmlfile'
 
     def initialize(self, server):
@@ -43,17 +44,10 @@ class HtmlFileTransport(streamingbase.StreamingTransportBase):
         self.handle_session_cookie()
         self.disable_cache()
         self.set_header('Content-Type', 'text/html; charset=UTF-8')
-
-        # Grab callback parameter
-        callback = self.get_argument('c', None)
-        if not callback:
-            self.write('"callback" parameter required')
-            self.set_status(500)
-            self.finish()
-            return
+        self.verify_callback()
 
         # TODO: Fix me - use parameter
-        self.write(HTMLFILE_HEAD % callback)
+        self.write(HTMLFILE_HEAD % self.json_callback)
         self.flush()
 
         # Now try to attach to session
