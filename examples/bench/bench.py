@@ -8,10 +8,10 @@ import weakref
 
 from tornado import web, ioloop
 
-from sockjs.tornado import SockJSRouter, SockJSConnection
+from sockjs import tornado as sockjs
 
 
-class EchoConnection(SockJSConnection):
+class EchoConnection(sockjs.Connection):
     """Echo connection implementation"""
     clients = set()
     weak_clients = weakref.WeakSet([])
@@ -23,7 +23,7 @@ class EchoConnection(SockJSConnection):
 
     def on_message(self, msg):
         # For every incoming message, broadcast it to all clients
-        self.broadcast(self.clients, msg)
+        self.broadcast(msg)
 
     def on_close(self):
         # If client disconnects, remove him from the clients list
@@ -35,6 +35,11 @@ class EchoConnection(SockJSConnection):
         print 'Clients: %d' % (len(cls.clients))
         print 'Weak Clients: %d' % (len(cls.weak_clients))
 
+
+class EchoEndpoint(sockjs.Endpoint):
+    connection_class = EchoConnection
+
+
 if __name__ == '__main__':
     options = dict()
 
@@ -42,13 +47,12 @@ if __name__ == '__main__':
         options['immediate_flush'] = False
 
     # 1. Create SockJSRouter
-    EchoRouter = SockJSRouter(EchoConnection, '/broadcast', options)
+    server = sockjs.Server()
 
-    # 2. Create Tornado web.Application
-    app = web.Application(EchoRouter.urls)
+    server.add_endpoint(EchoEndpoint(options), '/broadcast')
 
     # 3. Make application listen on port 8080
-    app.listen(8080)
+    server.listen(8080)
 
     # 4. Every 1 second dump current client count
     ioloop.PeriodicCallback(EchoConnection.dump_stats, 1000).start()

@@ -1,50 +1,60 @@
-import sys
+"""
+Convenience wrapper around the Python world of json encoding and decoding,
+looking for the fastest library implementation first and then falling back
+to stdlib if necessary.
+"""
 
-PY3 = sys.version_info[0] == 3
+from __future__ import absolute_import
 
-if PY3:
-    MAXSIZE = sys.maxsize
+from sockjs.tornado.log import core as LOG
 
-    def bytes_to_str(b):
-        if isinstance(b, bytes):
-            return str(b, 'utf8')
-        return b
+try:
+    import ujson as json
 
-    def str_to_bytes(s):
-        if isinstance(s, bytes):
-            return s
-        return s.encode('utf8')
+    LOG.debug('sockjs.tornado will use ujson module')
+except ImportError:
+    try:
+        import simplejson as json
 
-    import urllib.parse
-    unquote_plus = urllib.parse.unquote_plus
+        LOG.debug('sockjs.tornado will use simplejson module')
+    except ImportError:
+        import json
+
+        LOG.debug('sockjs.tornado will use json module')
+
+
+__all__ = [
+    'json_encode',
+    'json_decode',
+    'str_to_bytes',
+    'bytes_to_str',
+]
+
+
+# ujson will not accept separators as part of the dumps call
+try:
+    json.dumps({}, separators=(',', ':'))
+except TypeError:
+    json_encode = json.dumps
 else:
-    if sys.platform == "java":
-        # Jython always uses 32 bits.
-        MAXSIZE = int((1 << 31) - 1)
-    else:
-        # It's possible to have sizeof(long) != sizeof(Py_ssize_t).
-        class X(object):
-            def __len__(self):
-                return 1 << 31
-        try:
-            len(X())
-        except OverflowError:
-            # 32-bit
-            MAXSIZE = int((1 << 31) - 1)
-        else:
-            # 64-bit
-            MAXSIZE = int((1 << 63) - 1)
-            del X
+    dumps = json.dumps
 
-    def bytes_to_str(s):
-        if isinstance(s, unicode):
-            return s.encode('utf-8')
+    def json_encode(data):
+        return dumps(data, separators=(',', ':'))
+
+
+json_decode = json.loads
+
+
+def bytes_to_str(b):
+    if isinstance(b, bytes):
+        return b.decode('utf-8')
+
+    return b
+
+
+def str_to_bytes(s):
+    if isinstance(s, bytes):
         return s
 
-    def str_to_bytes(s):
-        if isinstance(s, unicode):
-            return s.encode('utf8')
-        return s
-
-    import urllib
-    unquote_plus = urllib.unquote_plus
+    return s.encode('utf-8')

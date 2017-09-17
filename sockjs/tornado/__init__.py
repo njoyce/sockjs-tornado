@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
-
-from .router import SockJSRouter
-from .conn import SockJSConnection
+from sockjs.tornado.server import Connection
+from sockjs.tornado.server import Endpoint
+from sockjs.tornado.server import Server
 
 
 __all__ = [
-    'SockJSConnection',
-    'SockJSRouter',
+    'Connection',
+    'Endpoint',
+    'Server',
 ]

@@ -1,17 +1,23 @@
 # -*- coding: utf-8 -*-
-import math
+from tornado import ioloop
+from tornado_console import ConsoleServer
 
-from tornado import web, ioloop
+from sockjs import tornado as sockjs
 
-from sockjs.tornado import SockJSRouter, SockJSConnection
+try:
+    import coloredlogs
+except ImportError:
+    pass
+else:
+    coloredlogs.install(level='DEBUG')
 
 
-class EchoConnection(SockJSConnection):
+class EchoConnection(sockjs.Connection):
     def on_message(self, msg):
         self.send(msg)
 
 
-class CloseConnection(SockJSConnection):
+class CloseConnection(sockjs.Connection):
     def on_open(self, info):
         self.close()
 
@@ -19,68 +25,56 @@ class CloseConnection(SockJSConnection):
         pass
 
 
-class TickerConnection(SockJSConnection):
-    def on_open(self, info):
-        self.timeout = ioloop.PeriodicCallback(self._ticker, 1000)
-        self.timeout.start()
-
-    def on_close(self):
-        self.timeout.stop()
-
-    def _ticker(self):
-        self.send('tick!')
+class EchoEndpoint(sockjs.Endpoint):
+    connection_class = EchoConnection
 
 
-class BroadcastConnection(SockJSConnection):
-    clients = set()
-
-    def on_open(self, info):
-        self.clients.add(self)
-
-    def on_message(self, msg):
-        self.broadcast(self.clients, msg)
-
-    def on_close(self):
-        self.clients.remove(self)
-
-
-class AmplifyConnection(SockJSConnection):
-    def on_message(self, msg):
-        n = int(msg)
-        if n < 0 or n > 19:
-            n = 1
-
-        self.send('x' * int(math.pow(2, n)))
-
-
-class CookieEcho(SockJSConnection):
-    def on_message(self, msg):
-        self.send(msg)
+class CloseEndpoint(sockjs.Endpoint):
+    connection_class = CloseConnection
 
 
 if __name__ == '__main__':
     import logging
     logging.getLogger().setLevel(logging.DEBUG)
 
-    EchoRouter = SockJSRouter(EchoConnection, '/echo',
-                            user_settings=dict(response_limit=4096))
-    WSOffRouter = SockJSRouter(EchoConnection, '/disabled_websocket_echo',
-                            user_settings=dict(disabled_transports=['websocket']))
-    CloseRouter = SockJSRouter(CloseConnection, '/close')
-    TickerRouter = SockJSRouter(TickerConnection, '/ticker')
-    AmplifyRouter = SockJSRouter(AmplifyConnection, '/amplify')
-    BroadcastRouter = SockJSRouter(BroadcastConnection, '/broadcast')
-    CookieRouter = SockJSRouter(CookieEcho, '/cookie_needed_echo')
+    sockjs_server = sockjs.Server(debug=True)
 
-    app = web.Application(EchoRouter.urls +
-                          WSOffRouter.urls +
-                          CloseRouter.urls +
-                          TickerRouter.urls +
-                          AmplifyRouter.urls +
-                          BroadcastRouter.urls +
-                          CookieRouter.urls
-                          )
+    echo_endpoint = EchoEndpoint({'response_limit': 4096})
+    no_websocket_echo_endpoint = EchoEndpoint(
+        {'disabled_transports': ['websocket']}
+    )
+    close_endpoint = CloseEndpoint()
+    cookie_needed_endpoint = EchoEndpoint({'jessionid': True})
 
-    app.listen(8081)
+    sockjs_server.add_endpoint(
+        echo_endpoint,
+        '/echo',
+    )
+
+    sockjs_server.add_endpoint(
+        no_websocket_echo_endpoint,
+        '/disabled_websocket_echo',
+    )
+
+    sockjs_server.add_endpoint(
+        close_endpoint,
+        '/close',
+    )
+
+    sockjs_server.add_endpoint(
+        cookie_needed_endpoint,
+        '/cookie_needed_echo',
+    )
+
+    http_server = sockjs_server.listen(8081)
+    console_server = ConsoleServer(locals())
+
+    console_server.listen(1234)
+
     logging.info(" [*] Listening on 0.0.0.0:8081")
-    ioloop.IOLoop.instance().start()
+    logging.info(" [*] Console is at 0.0.0.0:1234")
+
+    try:
+        ioloop.IOLoop.instance().start()
+    except KeyboardInterrupt:
+        pass

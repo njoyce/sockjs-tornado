@@ -14,14 +14,15 @@ clean:
 test_deps: venv/.test_deps
 
 venv:
-	virtualenv venv
-	-rm distribute-*.tar.gz || true
+	virtualenv venv --python=$(PYTHON)
 
 venv/.test_deps: venv
-	./venv/bin/pip install tornado
+	./venv/bin/pip install -r requirements.txt
+	./venv/bin/pip install -r requirements-dev.txt
 	touch venv/.test_deps
 
 #### Development
 
 test_server: test_deps
-	PYTHONPATH=$(PWD) ./venv/bin/python examples/test/test.py
+	PYTHONPATH=$(PWD) python examples/test/test.py
+

@@ -51,7 +51,7 @@ class MovingAverage(object):
 
 
 class StatsCollector(object):
-    def __init__(self, io_loop):
+    def __init__(self, delay=1):
         # Sessions
         self.sess_active = 0
 
@@ -66,10 +66,24 @@ class StatsCollector(object):
         self.pack_sent_ps = MovingAverage()
         self.pack_recv_ps = MovingAverage()
 
-        self._callback = ioloop.PeriodicCallback(self._update,
-                                                 1000,
-                                                 io_loop)
+        self._callback = ioloop.PeriodicCallback(
+            self._update,
+            delay * 1000,
+        )
+
+    def __del__(self):
+        try:
+            self.stop()
+        except:
+            pass
+
+    def start(self):
         self._callback.start()
+
+    def stop(self):
+        if self._callback:
+            self._callback.stop()
+            self._callback = None
 
     def _update(self):
         self.conn_ps.flush()
@@ -90,7 +104,7 @@ class StatsCollector(object):
             # Packets
             packets_sent_ps=self.pack_sent_ps.last_average,
             packets_recv_ps=self.pack_recv_ps.last_average
-            )
+        )
 
         for k, v in self.sess_transports.items():
             data['transp_' + k] = v
