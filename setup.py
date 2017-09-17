@@ -1,13 +1,7 @@
-#!/usr/bin/env python
 import os
+from setuptools import find_packages, setup
 
-import distutils.core
-import sys
-
-try:
-    import setuptools
-except ImportError:
-    pass
+from pip.req import parse_requirements
 
 try:
     license = open('LICENSE').read()
@@ -19,37 +13,31 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
-def desc():
-    info = read('README.rst')
+def get_requirements(filename):
     try:
-        return info + '\n\n' + read('doc/changelog.rst')
-    except IOError:
-        return info
+        from pip.download import PipSession
 
-distutils.core.setup(
+        session = PipSession()
+    except ImportError:
+        session = None
+
+    reqs = parse_requirements(filename, session=session)
+
+    return [str(r.req) for r in reqs]
+
+
+setup_args = dict(
     name='sockjs-tornado',
-    version='1.0.3',
-    author='Serge S. Koval',
-    author_email='serge.koval@gmail.com',
-    packages=['sockjs', 'sockjs.tornado', 'sockjs.tornado.transports'],
+    version='2.0.0',
+    maintainer='Nick Joyce',
+    maintainer_email='nick@boxdesign.co.uk',
+    packages=find_packages(),
     namespace_packages=['sockjs'],
-    scripts=[],
-    url='http://github.com/mrjoes/sockjs-tornado/',
-    license=license,
-    description='SockJS python server implementation on top of Tornado framework',
-    long_description=desc(),
-    classifiers=[
-        'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: Implementation :: CPython',
-    ],
-    requires=['tornado'],
-    install_requires=[
-        'tornado >= 2.1.1'
-    ]
+    install_requires=get_requirements('requirements.txt'),
+    url='https://gitlab.com/show-cast/sockjs-tornado/',
+    description='SockJS Python server implementation on top of Tornado framework',
 )
+
+
+if __name__ == '__main__':
+    setup(**setup_args)
