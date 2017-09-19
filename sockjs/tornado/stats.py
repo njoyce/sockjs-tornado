@@ -71,12 +71,6 @@ class StatsCollector(object):
             delay * 1000,
         )
 
-    def __del__(self):
-        try:
-            self.stop()
-        except:
-            pass
-
     def start(self):
         self._callback.start()
 

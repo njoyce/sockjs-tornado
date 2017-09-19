@@ -37,14 +37,6 @@ class StateMixin(object):
         self._state = NEW
         self.close_reason = None
 
-    def __del__(self):
-        try:
-            if self.opened:
-                self.close()
-        except:
-            # close() may fail if __init__ didn't complete
-            pass
-
     @property
     def new(self):
         return self._state == NEW
