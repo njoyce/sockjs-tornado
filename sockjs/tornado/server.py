@@ -138,6 +138,7 @@ class Endpoint(object):
 
     def __init__(self, settings=None):
         self.active_sessions = {}
+        self.started = False
 
         self.settings = DEFAULT_SETTINGS.copy()
 
@@ -153,17 +154,38 @@ class Endpoint(object):
         self.start()
 
     def start(self):
+        if self.started:
+            return
+
+        self.started = True
+
         self.session_pool.start()
         self.stats.start()
 
+        self.on_started()
+
     def stop(self):
+        if not self.started:
+            return
+
+        self.started = False
+
+        self.session_pool.stop()
+        self.stats.stop()
+
+        self.on_stopped()
+
         if self.session_pool:
-            self.session_pool.stop()
             self.session_pool = None
 
         if self.stats:
-            self.stop.stop()
             self.stats = None
+
+    def on_started(self):
+        pass
+
+    def on_stopped(self):
+        pass
 
     @property
     def websockets_enabled(self):
