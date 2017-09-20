@@ -143,6 +143,10 @@ class BaseHandler(web.RequestHandler, CachingMixin, CookieMixin, CorsMixin,
         if self.stats:
             self.stats.on_conn_opened()
 
+    def set_default_headers(self):
+        self.clear_header('Date')
+        self.clear_header('Server')
+
     def on_connection_close(self):
         super(BaseHandler, self).on_connection_close()
 
