@@ -56,15 +56,24 @@ class WebSocketTransport(websocket.WebSocketHandler,
 
         try:
             msg = json_decode(bytes_to_str(message))
-
-            if not isinstance(msg, list):
-                msg = [msg]
-
-            self.session.dispatch(msg)
         except Exception:
-            LOG.exception('WebSocket')
+            LOG.exception('Failed to decode %r', message)
 
             self.close()
+
+            return
+
+        if not isinstance(msg, list):
+            msg = [msg]
+
+        try:
+            self.session.dispatch(msg)
+        except Exception:
+            LOG.exception('Failed to dispatch message %r', msg)
+
+            self.close()
+
+            return
 
     def on_close(self):
         self.stats.on_conn_closed()
