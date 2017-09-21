@@ -54,6 +54,14 @@ class WebSocketTransport(websocket.WebSocketHandler,
         if not message:
             return
 
+        if message == 'h':
+            # heartbeat frame
+            self.session.touch()
+
+            self.send_raw('h')
+
+            return
+
         try:
             msg = json_decode(bytes_to_str(message))
         except Exception:

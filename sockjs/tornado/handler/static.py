@@ -137,11 +137,16 @@ class InfoHandler(base.BaseHandler):
     def get(self):
         self.response_preamble()
 
+        # TODO sockjs-client support `base_url` as the actual url to use for
+        # the transport url
         options = dict(
             websocket=self.endpoint.websockets_enabled,
             cookie_needed=self.endpoint.cookie_needed,
             origins=['*:*'],
-            entropy=random.randint(0, self.MAX_ENTROPY)
+            server_heartbeat_interval=(
+                self.sockjs_settings['heartbeat_delay'] * 1000
+            ),
+            entropy=random.randint(0, self.MAX_ENTROPY),
         )
 
         self.write(json_encode(options))

@@ -24,5 +24,5 @@ venv/.test_deps: venv
 #### Development
 
 test_server: test_deps
-	PYTHONPATH=$(PWD) python examples/test/test.py
+	PYTHONPATH=$(PWD) venv/bin/python examples/test/test.py
 
