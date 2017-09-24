@@ -91,7 +91,7 @@ class WebSocketTransport(websocket.WebSocketHandler,
     def session_closed(self, session):
         super(WebSocketTransport, self).session_closed(session)
 
-        self.close()
+        self.close(*session.close_reason)
 
     def on_pong(self, data):
         self.session.touch()
