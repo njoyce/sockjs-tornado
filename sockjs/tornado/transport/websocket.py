@@ -64,7 +64,7 @@ class WebSocketTransport(websocket.WebSocketHandler,
         try:
             msg = json_decode(bytes_to_str(message))
         except Exception:
-            LOG.exception('Failed to decode %r', message)
+            LOG.error('Failed to decode %r', message)
 
             self.close()
 
