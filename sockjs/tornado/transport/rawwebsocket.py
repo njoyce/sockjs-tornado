@@ -5,12 +5,10 @@
 
     Raw websocket transport implementation
 """
-import logging
 
+from sockjs.tornado.log import transport as LOG
 from sockjs.tornado import session
 from sockjs.tornado.transport import websocket
-
-LOG = logging.getLogger("tornado.general")
 
 
 class RawWebSocket(session.BaseSession):
@@ -50,14 +48,16 @@ class RawWebSocketTransport(websocket.WebSocketTransport):
         try:
             self.session.dispatch([message])
         except Exception:
-            LOG.exception('RawWebSocket')
+            LOG.exception('Failed to dispatch')
 
             self.close()
 
     def send_open_frame(self):
+        # deliberate no-op, raw-websocket does not send an open frame
         pass
 
     def send_close_frame(self, close_reason):
+        # deliberate no-op, raw-websocket does not send a close frame
         pass
 
     def send(self, data):

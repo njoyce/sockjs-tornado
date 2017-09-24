@@ -5,14 +5,13 @@
 
     Websocket transport implementation
 """
-import logging
 
 from sockjs.tornado.handler import websocket
 from sockjs.tornado.transport import base
 from sockjs.tornado.util import bytes_to_str
 from sockjs.tornado.util import json_decode
 
-LOG = logging.getLogger("tornado.general")
+from sockjs.tornado.log import transport as LOG
 
 
 class WebSocketTransport(websocket.WebSocketHandler,
