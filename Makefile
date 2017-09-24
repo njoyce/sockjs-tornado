@@ -1,28 +1,32 @@
 PYTHON=python
-
-#### General
+# name of the directory to install the virtualenv
+VENV=venv
 
 all:
 	$(PYTHON) setup.py build
 
 clean:
-	rm -rf venv
-	find . -name \*.pyc | xargs --no-run-if-empty rm
+	rm -rf $(VENV)
+	find . -name \*.pyc | xargs rm
 
 #### Dependencies
 
-test_deps: venv/.test_deps
+# install the python dependencies in to the virtualenv
+test_deps: $(VENV)/.test_deps
 
-venv:
-	virtualenv venv --python=$(PYTHON)
+# Create a virtualenv to run the examples/tests
+$(VENV):
+	virtualenv $(VENV) --python=$(PYTHON)
+	$(VENV)/bin/pip install --upgrade pip setuptools
 
-venv/.test_deps: venv
-	./venv/bin/pip install -r requirements.txt
-	./venv/bin/pip install -r requirements-dev.txt
-	touch venv/.test_deps
+# install the python dependencies in to the virtualenv
+$(VENV)/.test_deps: $(VENV)
+	$(VENV)/bin/pip install -r requirements.txt
+	$(VENV)/bin/pip install -r requirements-dev.txt
+	$(VENV)/bin/pip install -e .
 
-#### Development
+	touch $(VENV)/.test_deps
 
+# run the sockjs-protocol compatible server
 test_server: test_deps
-	PYTHONPATH=$(PWD) venv/bin/python examples/test/test.py
-
+	$(VENV)/bin/python examples/test/test.py
