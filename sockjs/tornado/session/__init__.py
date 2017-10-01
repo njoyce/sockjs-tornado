@@ -18,6 +18,10 @@ __all__ = [
 
 
 class InMemorySession(BaseSession):
+    """
+    This is the standard session that holds all buffered messages in memory.
+    """
+
     def __init__(self, *args, **kwargs):
         super(InMemorySession, self).__init__(*args, **kwargs)
 

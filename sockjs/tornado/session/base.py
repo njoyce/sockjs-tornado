@@ -22,8 +22,34 @@ CLOSING = 2
 CLOSED = 3
 
 
+class ITransport(object):
+    """
+    This is an interface object containing documentation of what attributes
+    and methods a transport must provide to interact correctly with a session.
+
+    Don't use this in runtime :)
+    """
+
+    @property
+    def recvable(self):
+        """
+        This property must be set to `True` if the transport is capable of
+        receiving SockJS frames from the client.
+
+        Must be set to `False` in all other cases.
+        """
+
+    @property
+    def sendable(self):
+        """
+        This property must be set to `True` if the transport is capable of
+        sending SockJS frames to the client.
+        """
+
+
 class StateMixin(object):
     """
+    Mixin class to define all states that a session can be in.
     :ivar _state: What state this session is currently in. Valid values:
         - NEW: session is new and has not been ``opened`` yet.
         - OPEN: session has been opened and is in a usable state.
@@ -31,6 +57,9 @@ class StateMixin(object):
           the remaining messages.
         - CLOSED: a session has been closed successfully and is now ready for
           garbage collection.
+    :ivar close_reason: A tuple that contains the code (int) and reason (bytes)
+        as to why this session was closed. This attribute is only populated
+        when the session moves in to a CLOSING/CLOSED state.
     """
 
     def __init__(self):
@@ -90,6 +119,10 @@ class StateMixin(object):
     def close(self, code=3000, message='Go away!'):
         """
         Close this session.
+
+        :param code: The websocket closing code. See
+            https://tools.ietf.org/html/rfc6455#section-7.4.1 for valid values.
+        :param reason: The human readable string of why the session was closed.
         """
         if self.closed:
             return
@@ -100,12 +133,29 @@ class StateMixin(object):
         self.on_close()
 
     def did_close(self):
+        """
+        A session that is CLOSING must eventually be transitioned to CLOSED.
+
+        This method does just that :)
+        """
         self._state = CLOSED
 
     def on_open(self):
+        """
+        Called when the session has been opened. Must be called only once per
+        session instance.
+
+        Implemented in subclasses.
+        """
         raise NotImplementedError
 
     def on_close(self):
+        """
+        Called ONCE when the session has transitioned from NEW/OPEN to
+        CLOSING/CLOSED. Perform cleanup.
+
+        Implemented in subclasses.
+        """
         raise NotImplementedError
 
 
@@ -115,13 +165,10 @@ class TransportMixin(object):
     transports like websocket, this will the the same instance but for polling
     and long polling like xhr or jsonp, these are two separate handlers.
 
-    This mixin holds weak references to the transports so that if the
-    underlying connection disappears, they will be gc'd and disappear.
-
     :ivar send_transport: The transport that will send SockJS frames to the
-        client.
+        client. Must implement the `ITransport` interface.
     :ivar recv_transport: The transport that will receive SockJS frames from
-        the client.
+        the client. Must implement the `ITransport` interface.
     """
 
     def __init__(self):
@@ -129,6 +176,13 @@ class TransportMixin(object):
         self.recv_transport = None
 
     def attach_transport(self, transport):
+        """
+        Attach a transport to this session. A transport must implement the
+        `ITransport` interface. If a transport is already attached then
+        `exc.TransportAlreadySet` will be raised.
+
+        :param transport: Implements the `ITransport` interface.
+        """
         if not (transport.recvable or transport.sendable):
             raise AssertionError('Cannot attach to %r' % (transport,))
 
@@ -154,6 +208,12 @@ class TransportMixin(object):
             raise
 
     def detach_transport(self, transport):
+        """
+        Detach the transport from the session. This must be called when the
+        transport connection is lost or goes away for some other reason.
+
+        :param transport: Implements the `ITransport` interface.
+        """
         if not (transport.recvable or transport.sendable):
             raise AssertionError('Cannot deattach from %r' % (transport,))
 
@@ -183,28 +243,51 @@ class TransportMixin(object):
 
 class ExpiryMixin(object):
     """
-    :ivar expires_at: The timestamp at which this session will expire.
-    :ivar ttl_interval: The value to set `expires_at` to as a delta to the
-        current time.
+    Each session only exists for a limited period of time. If both the send AND
+    recv transports are removed then the session is considered CLOSED.
+
+    Since SockJS is a WebSocket emulation layer, there are polling transports
+    available as a backup. Since these connections come and go, the session
+    expiry must be updated at regular intervals otherwise it will be
+    transitioned into a CLOSING/CLOSED state. SockJS supports heartbeats to
+    keep the 'session' alive.
+
+    :ivar expires_at: The absolute timestamp at which this session will expire.
+    :ivar ttl: The number of seconds from the current time value that the
+        session will expire.
     """
 
     def __init__(self, ttl, time_func=time.time):
+        """
+        :param ttl: This one should be obvious :)
+        :param time_func: When called, returns the number of seconds since the
+            epoch. Used for testing. Should not be supplied in all other
+            scenarios.
+        """
         self.ttl = ttl
 
         self.set_expiry(ttl, time_func=time_func)
 
     def touch(self, time_func=time.time):
         """
-        Bump the TTL of the session.
+        Mark this session as alive - Do this by updating the `expires_at` to
+        it's maximum value.
+
+        :param time_func: When called, returns the number of seconds since the
+            epoch. Used for testing. Should not be supplied in all other
+            scenarios.
         """
         self.expires_at = time_func() + self.ttl
 
     def set_expiry(self, expires, time_func=time.time):
         """
-        Possible values for expires and its effects:
-         - None/0: session will never expire
-         - int/long: seconds until the session expires
-         - datetime: absolute date/time that the session will expire.
+        :param expires:
+            - None/0: session will never expire.
+            - int/long: seconds until the session expires.
+            - datetime: absolute date/time that the session will expire.
+        :param time_func: When called, returns the number of seconds since the
+            epoch. Used for testing. Should not be supplied in all other
+            scenarios.
         """
         if not expires:
             self.expires_at = 0
@@ -223,6 +306,13 @@ class ExpiryMixin(object):
     def has_expired(self, now=None, time_func=time.time):
         """
         Whether this session has expired.
+
+        :param now: The time in seconds since the epoch against which the
+            expiry of this session will be evaluated. If not supplied, the
+            sytem time will be used.
+        :param time_func: When called, returns the number of seconds since the
+            epoch. Used for testing. Should not be supplied in all other
+            scenarios.
         """
         if not self.expires_at:
             return False
@@ -237,15 +327,23 @@ class BaseSession(StateMixin, TransportMixin, ExpiryMixin):
 
     :ivar session_id: The unique id of the session.
     :ivar conn: Connection object to which this session is bound. See ``bind``.
-        All events will be dispatched to this object.
+        All session events will be dispatched to this object.
+    :ivar conn_info: Pertinent information about the connection (ip addr etc.)
+        :see:`sockjs.transport.ConnectionInfo`.
     """
 
+    # helpful way of getting to the session exceptions.
     exc = exc
 
-    def __init__(self, session_id, ttl_interval):
+    def __init__(self, session_id, ttl):
+        """
+        :param session_id: A unique, random ascii bytestring that represents
+            the id of the session. This must be unique per server.
+        :param ttl: The ttl (:see:`ExpiryMixin.ttl`).
+        """
         StateMixin.__init__(self)
         TransportMixin.__init__(self)
-        ExpiryMixin.__init__(self, ttl_interval)
+        ExpiryMixin.__init__(self, ttl)
 
         self.session_id = session_id
         self.conn = None
@@ -280,6 +378,9 @@ class BaseSession(StateMixin, TransportMixin, ExpiryMixin):
         self.conn_info = conn_info
 
     def on_open(self):
+        """
+        Called when the session has been opened.
+        """
         if not self.conn:
             raise exc.UnboundSessionError
 
@@ -291,6 +392,9 @@ class BaseSession(StateMixin, TransportMixin, ExpiryMixin):
         self.conn.session_opened(self.conn_info)
 
     def on_close(self):
+        """
+        Called when the session has been closed.
+        """
         if self.conn:
             # only dispatch the close event if we were previously opened
             try:

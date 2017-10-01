@@ -1,11 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-    sockjs.tornado.basehandler
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    Various base http handlers
-"""
-
 import datetime
 import re
 
@@ -17,14 +9,22 @@ __all__ = [
 
 
 class CachingMixin(object):
-    # whether or not enable caching for the request
+    """
+    Supports enabling/disabling caching for a response to a request.
+
+    :cvar cache: Whether the response should be cached.
+    :cvar CACHE_TIME: The length of time in seconds that the response should be
+        cached.
+    """
     cache = False
 
     CACHE_TIME = 31536000
 
     # Various helpers
     def enable_cache(self):
-        """Enable client-side caching for the current request"""
+        """
+        Enable client-side caching for the current request
+        """
         self.set_header(
             'Cache-Control',
             'max-age=%d, public' % (self.CACHE_TIME,)
@@ -38,7 +38,9 @@ class CachingMixin(object):
         self.set_header('Access-Control-Max-Age', self.CACHE_TIME)
 
     def disable_cache(self):
-        """Disable client-side cache for the current request"""
+        """
+        Disable client-side cache for the current request
+        """
         self.set_header(
             'Cache-Control',
             'no-store, no-cache, no-transform, must-revalidate, max-age=0'
@@ -46,16 +48,24 @@ class CachingMixin(object):
 
 
 class CorsMixin(object):
-    # whether or not to enable cors response headers and OPTIONS request
+    """
+    Support for enabling CORS for a request.
+
+    :cvar cors: Whether to add CORS related headers for a response and respond
+        to an OPTIONS request.
+    """
     cors = False
 
     def verify_origin(self):
-        """Verify if request can be served"""
-        # TODO: Verify origin
+        """
+        Verify if request can be served
+        """
         return True
 
     def preflight(self):
-        """Handles request authentication"""
+        """
+        Handles request authentication
+        """
         origin = self.request.headers.get('Origin', '*')
         self.set_header('Access-Control-Allow-Origin', origin)
 

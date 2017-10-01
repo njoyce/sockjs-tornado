@@ -1,3 +1,7 @@
+"""
+Some and various loggers used by this library.
+"""
+
 import logging
 
 __all__ = [

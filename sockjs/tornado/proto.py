@@ -1,9 +1,5 @@
-# -*- coding: utf-8 -*-
 """
-    sockjs.tornado.proto
-    ~~~~~~~~~~~~~~~~~~~~
-
-    SockJS protocol related functions
+SockJS protocol related functions
 """
 
 from sockjs.tornado.util import json_encode, json_decode
@@ -15,7 +11,6 @@ MESSAGE = 'm'
 HEARTBEAT = 'h'
 
 
-# Various protocol helpers
 def close_frame(code, reason):
     """Return SockJS packet with code and close reason
 

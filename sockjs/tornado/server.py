@@ -57,6 +57,8 @@ class Connection(object):
 
         `session`
             Associated session
+        `endpoint`
+            Associated session
         """
         self.endpoint = endpoint
         self.session = session
