@@ -6,7 +6,7 @@
 import sys
 import weakref
 
-from tornado import web, ioloop
+from tornado import ioloop
 
 from sockjs import tornado as sockjs
 
@@ -58,4 +58,7 @@ if __name__ == '__main__':
     ioloop.PeriodicCallback(EchoConnection.dump_stats, 1000).start()
 
     # 5. Start IOLoop
-    ioloop.IOLoop.instance().start()
+    try:
+        ioloop.IOLoop.instance().start()
+    except KeyboardInterrupt:
+        pass
