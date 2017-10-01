@@ -131,7 +131,7 @@ class Connection(object):
 class Endpoint(object):
     """SockJS protocol router"""
 
-    session_class = session.InMemorySession
+    session_class = session.Session
     session_pool_class = session.SessionPool
 
     @property

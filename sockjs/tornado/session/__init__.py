@@ -6,24 +6,23 @@
     SockJS session implementation.
 """
 
+from sockjs.tornado.session import base
 from sockjs.tornado.session.pool import SessionPool
-from sockjs.tornado.session.base import BaseSession
 
 
 __all__ = [
-    'BaseSession',
+    'Session',
     'SessionPool',
-    'InMemorySession',
 ]
 
 
-class InMemorySession(BaseSession):
+class Session(base.BaseSession):
     """
     This is the standard session that holds all buffered messages in memory.
     """
 
     def __init__(self, *args, **kwargs):
-        super(InMemorySession, self).__init__(*args, **kwargs)
+        super(Session, self).__init__(*args, **kwargs)
 
         self.send_buffer = []
 

@@ -11,7 +11,7 @@ from sockjs.tornado import session
 from sockjs.tornado.transport import websocket
 
 
-class RawWebSocket(session.BaseSession):
+class RawWebSocket(session.Session):
     def __init__(self):
         super(RawWebSocket, self).__init__('raw', 0)
 
