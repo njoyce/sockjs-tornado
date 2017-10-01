@@ -3,6 +3,7 @@ from tornado import web
 from sockjs.tornado import handler
 from sockjs.tornado.log import transport as LOG
 from sockjs.tornado.util import json_decode
+from sockjs.tornado.util import str_to_bytes
 from sockjs.tornado import proto
 
 try:
@@ -233,7 +234,7 @@ class BaseTransport(handler.BaseHandler):
         self.send_raw(frame)
 
     def send_raw(self, data):
-        self.write(data)
+        self.write(str_to_bytes(data))
         self.flush()
 
     def encode_frame(self, data):

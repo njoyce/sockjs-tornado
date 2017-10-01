@@ -5,6 +5,7 @@ import time
 from sockjs.tornado import proto
 from sockjs.tornado.log import session as LOG
 from sockjs.tornado.session import exc
+from sockjs.tornado.util import str_to_bytes
 
 
 __all__ = [
@@ -453,6 +454,8 @@ class BaseSession(StateMixin, TransportMixin, ExpiryMixin):
     def send(self, message, raw=False):
         if not raw:
             message = proto.encode(message)
+
+        message = str_to_bytes(message)
 
         self.send_frame(message)
 
