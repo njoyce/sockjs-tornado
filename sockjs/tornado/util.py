@@ -9,18 +9,13 @@ from __future__ import absolute_import
 from sockjs.tornado.log import core as LOG
 
 try:
-    import ujson as json
+    import simplejson as json
 
-    LOG.debug('sockjs.tornado will use ujson module')
+    LOG.debug("sockjs.tornado will use 'simplejson' module")
 except ImportError:
-    try:
-        import simplejson as json
+    import json
 
-        LOG.debug('sockjs.tornado will use simplejson module')
-    except ImportError:
-        import json
-
-        LOG.debug('sockjs.tornado will use json module')
+    LOG.debug("sockjs.tornado will use 'json' module")
 
 
 __all__ = [
@@ -31,16 +26,12 @@ __all__ = [
 ]
 
 
-# ujson will not accept separators as part of the dumps call
-try:
-    json.dumps({}, separators=(',', ':'))
-except TypeError:
-    json_encode = json.dumps
-else:
-    dumps = json.dumps
+# small optimisation to not do an attr look up every call to json_encode
+_dumps = json.dumps
 
-    def json_encode(data):
-        return dumps(data, separators=(',', ':'))
+
+def json_encode(data):
+    return _dumps(data, separators=(',', ':'))
 
 
 json_decode = json.loads
