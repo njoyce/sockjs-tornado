@@ -441,7 +441,14 @@ class BaseSession(StateMixin, TransportMixin, ExpiryMixin):
         self.touch()
 
         for msg in messages:
-            self.conn.on_message(msg)
+            try:
+                self.conn.on_message(msg)
+            except:
+                LOG.exception(self.session_id)
+
+                self.close()
+
+                break
 
     def send(self, message, raw=False):
         if not raw:
