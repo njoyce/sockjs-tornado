@@ -370,6 +370,9 @@ class BaseSession(StateMixin, TransportMixin, ExpiryMixin):
         """
         Bind this session to the connection object.
         """
+        if self.conn:
+            raise exc.SessionError('Session is already bound to a conn object')
+
         self.conn = conn
 
         self.touch()
