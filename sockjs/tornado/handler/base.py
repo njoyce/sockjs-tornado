@@ -30,7 +30,7 @@ class CachingMixin(object):
             'max-age=%d, public' % (self.CACHE_TIME,)
         )
 
-        d = datetime.datetime.now() + datetime.timedelta(
+        d = datetime.datetime.utcnow() + datetime.timedelta(
             seconds=self.CACHE_TIME
         )
         self.set_header('Expires', d.strftime('%a, %d %b %Y %H:%M:%S'))
