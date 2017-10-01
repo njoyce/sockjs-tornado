@@ -90,7 +90,7 @@ class SessionPool(object):
             raise RuntimeError('SessionPool is stopping')
 
         if session.session_id in self.sessions:
-            raise RuntimeError('Adding already existing session %r' % (
+            raise RuntimeError('Adding already existing session %s' % (
                 session.session_id,
             ))
 
