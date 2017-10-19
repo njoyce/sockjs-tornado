@@ -463,7 +463,7 @@ class Server(object):
         for endpoint in self.endpoints.values():
             endpoint.stop()
 
-    def listen(self, port, address=""):
+    def listen(self, port, address="", **kwargs):
         """
         Start accepting connections on a given port.
 
@@ -473,6 +473,6 @@ class Server(object):
         """
         self.start()
 
-        self.http_server = self.web_app.listen(port, address=address)
+        self.http_server = self.web_app.listen(port, address=address, **kwargs)
 
         return self.http_server
