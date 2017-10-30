@@ -11,3 +11,5 @@ source/_templates*
 make.bat
 venv
 *.egg-info
+
+protocol

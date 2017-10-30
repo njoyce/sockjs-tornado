@@ -1,0 +1,21 @@
+language: python
+
+python:
+  - "2.6"
+  - "2.7"
+
+env:
+  - TORNADO_VERSION=4.2
+
+before_install:
+  - git clone https://github.com/njoyce/sockjs-protocol.git protocol
+  - pip install -r protocol/requirements.txt
+install:
+  - pip install tornado==$TORNADO_VERSION
+  - pip install -e .
+
+script:
+  # start the test server
+  - python examples/test/test.py &
+  # run the protocol tests
+  - python protocol/sockjs-protocol.py
